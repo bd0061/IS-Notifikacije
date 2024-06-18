@@ -29,7 +29,7 @@ services:
     networks:
       - mreza
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d baza_mejlova -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -q -d mejl_baza -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
