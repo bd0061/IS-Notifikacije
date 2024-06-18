@@ -9,14 +9,14 @@ from email.mime.text import MIMEText
 from bs4 import BeautifulSoup
 
 def main():
-    old_articles = None
     retry_interval = int(os.getenv("RETRY_INTERVAL"))
     att_count = 0
     max_att_count = int(os.getenv("MAX_ATT_COUNT"))
     sleep_interval = float(os.getenv("SLEEP_INTERVAL"))
     TESTING = os.getenv("TESTING")
     TEST_FILE = os.getenv("TEST_FILE")
-    
+    vidjeni_artikli = {}
+    novi_artikli = []
     def povuci_studente(sifre):
         url = 'http://mailbackend:5001/api/MejlPoSiframa'
         params = {'kursSifre': sifre}
@@ -94,12 +94,12 @@ def main():
         logging.critical(f"TEST MOD, SIMULIRAM FETCHOVANJE STRANICE CITANJEM IZ FAJLA {TEST_FILE}")
     while True:
         flag = 0
-
+        novi_artikli =[]
         if TESTING != "1":
             try:
                 page_html = requests.get("https://is.fon.bg.ac.rs")
-            except:
-                logging.critical(f"Nepoznat error pri fetchovanju, pokusavam ponovo za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
+            except Exception as e:
+                logging.critical(f"Error pri fetchovanju: {e}, pokusavam ponovo za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
                 time.sleep(sleep_interval * 60)
                 continue
             
@@ -110,7 +110,7 @@ def main():
                     logging.critical(f"Predjeno max pokusaja, obustavljam sa pokusajima, pokusavam ponovo za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
                     time.sleep(sleep_interval * 60)
                     continue
-                logging.error(f"Server nije odgovorio sa HTML-om (da li je nedostupan? da li smo blokirani?), pokusavam fetch ponovo za {retry_interval}s...(pokusaj {att_count}/{max_att_count})")
+                logging.error(f"Server nije odgovorio sa HTML-om (kod {page_html.status_code}) (da li je nedostupan? da li smo blokirani?), pokusavam fetch ponovo za {retry_interval}s...(pokusaj {att_count}/{max_att_count})")
                 time.sleep(retry_interval)
                 continue
             att_count = 0
@@ -119,106 +119,69 @@ def main():
             articles = BeautifulSoup(page_html.text,"html.parser").find("main").find_all("article")
         else:
             articles = BeautifulSoup(open(TEST_FILE,"r",encoding="utf-8").read(),"html.parser").find("main").find_all("article")
-        
+
         if not articles:
             logging.critical(f"Nepoznat error (main tag ne postoji? promenjena struktura sajta?), pokusavam ponovo za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
             time.sleep(sleep_interval * 60)
             continue 
-        
-        if not old_articles:
-            logging.info(f"Prvi fetch, cekam {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}, pa poredim za razlike.")
-            time.sleep(sleep_interval * 60)
-            old_articles = articles
-            continue 
-            
-        if len(articles) < len(old_articles):
-            logging.error(f"Novi artikli imaju manje sadrzaja od starih. Da li je neka vest obrisana? Cekam {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}, pa poredim za razlike.")
-            time.sleep(sleep_interval * 60)
-            old_articles = articles 
-            continue
-            
-        #svaki artikal na sajtu je jedinstveno identifikovan svojim id atributom
-        #iz tog razloga trazimo razliku izmedju starih i novih artikala po id vrednosti
-        #pretvaranjem drugog niza u set dobijamo pretrazivanje u konstantnom vremenu, pa algoritam ima O(n) umesto O(n^2) vremensku kompleksnost
-        #svaki objekat dobijen iz find_all je jedinstven tako da pretvaranjem u set ne dolazimo ni do kakvog rizika
-        old_articles_comp = set([o['id'] for o in old_articles])
-        diff_articles = [a for a in articles if a['id'] not in old_articles_comp]
 
-        if not diff_articles:
-            logging.info(f"Nema razlike od prethodnog fetcha, cekam {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}, pa poredim ponovo.")
+        if not vidjeni_artikli:
+            logging.info(f"Prvi fetch, cekam {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}, pa ponovo trazim nove artikle.")
+            time.sleep(sleep_interval * 60)
+            for article in articles:
+                vidjeni_artikli[article['id']] = article
+            continue 
+        #npr
+        # {"5646-id" : article_object1, "57545-id": article_object2}
+        for article in articles:
+            if not article['id'] in vidjeni_artikli:
+                novi_artikli.append(article)
+                vidjeni_artikli[article['id']] = article
+
+
+        if not novi_artikli:
+            logging.info(f"Nema novih artikala, cekam {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}, pa poredim ponovo.")
             time.sleep(sleep_interval * 60) 
             continue        
-        logging.info("RAZLIKA PRONADJENA, KRECEM POKUSAJ SLANJA MEJLA")
-        for article in diff_articles:
+        logging.info(f">>>>>>>>>>>>>>>>>>>>>>>NOVI {'ARTIKLI' if len(novi_artikli) > 1 else 'ARTIKAL'} PRONADJEN, KRECEM POKUSAJ SLANJA MEJLA>>>>>>>>>>>>>>>>>>>>>>>")
+        for article in novi_artikli:
             svi_linkovi = article.select("a")
             vest_header = svi_linkovi[0]
             
             if vest_header:
                 vest_naslov = vest_header["title"]
-                vest_link = vest_header["href"]
             else:
-                vest_naziv = "Nepoznat naziv"
-                vest_link = ""
+                vest_naslov = "Nepoznat naziv"
             
             kategorije = odredi_kategorije(vest_naslov)
+            if not kategorije:
+                logging.error("Artikal ne pripada ni jednoj od poznatih kategorija, ignorisem...")
+                continue
+            body = article.prettify() + f"<br><p>Kategorije: {kategorije}</p>"
             
-            #iz nekog razloga u nekim vestima je deo sadrzaja u <div> umesto obican paragraf <p> 
-            sadrzaj = article.select("p, div:not([class]):not([id]):not([style]):not([name]):not([title]):not([role])")
-
-            if sadrzaj:
-                #poslednji p tag je dugme koje nam ne treba 
-                sadrzaj.pop()
-                if not sadrzaj:
-                    sadrzaj_tekst = "Vest nema sadrzaj."
-                else:
-                    sadrzaj_tekst = "\n".join([s.text for s in sadrzaj])
-            else:
-                sadrzaj_tekst = "Nepoznat tekst"
-                
-            
-            
-            #body = vest_naslov + "\n\n"
-            body = f"<p>CELU VEST POGLEDATI <a href = \"{vest_link}\">OVDE</a></p><br><p>{sadrzaj_tekst}</p>"
-            
-            
-            if any([True if x["href"] != vest_link else False for x in svi_linkovi]):
-                body += "<br><p>Linkovi spomenuti u vesti:</p>"
-            
-            for link in svi_linkovi:
-                if link["href"] != vest_link:
-                    l = link["href"]
-                    body += f"<p>{l}</p>"
-            body += f"Kategorije: {kategorije}<p>"
-            print(f"TEST {kategorije}")
             try:
                 studenti_za_slanje = povuci_studente(kategorije)
             except Exception as e:
-                logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE, preskacem artikal {vest_naslov}")
-                logging.critical(e) 
+                logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE ({e}), preskacem artikal {vest_naslov}")
                 flag = 1
                 continue
-            logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA {vest_naslov}: {studenti_za_slanje}")
-                    
+            logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")      
             
             for x in studenti_za_slanje['data']:
                 try:
-                    hn = socket.gethostbyname("frontend")
                     unsub_link = f"http://localhost:3000/unsubscribe?token={x['unsubtoken']}"
-                    posalji_mejl([x['email']], vest_naslov, body + f"<br><i>Ovaj mejl vam je poslat jer se nalazite na mejling listi za notifikacije. Da biste se odjavili kliknite <a href = \"{unsub_link}\">OVDE.</a></i>")
+                    posalji_mejl([x['email']], 'Нова вест - ' + vest_naslov, body + f"<br><i>Ovaj mejl vam je poslat jer se nalazite na mejling listi za notifikacije. Da biste se odjavili kliknite <a href = \"{unsub_link}\">OVDE.</a></i>")
                     logging.info(f"USPESNO POSLAT MEJL ZA ARTIKAL {vest_naslov} KORISNIKU {x['email']}")
                 except Exception as e:
                     flag = 1
-                    logging.critical(f"NEUSPESNO SLANJE MEJLA ZA ARTIKAL {vest_naslov} KORISNIKU {x['email']}, nastavljam dalje...") 
-                    logging.critical(e) 
+                    logging.critical(f"NEUSPESNO SLANJE MEJLA ZA ARTIKAL {vest_naslov} KORISNIKU {x['email']} ({e}), nastavljam dalje...") 
             
 
-
-
-        old_articles = articles
         if flag == 0:
             logging.info(f"Uspesno izvrsen odgovor, sledeci fetch za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
         elif flag == 1:
             logging.info(f"Neki delovi odgovora nisu uspesno izvrseni, sledeci fetch za {sleep_interval} {'minuta' if str(sleep_interval)[-1] != '1' else 'minut'}.")
+        novi_artikli = []
         time.sleep(sleep_interval * 60)
     
 
