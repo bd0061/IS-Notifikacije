@@ -1,0 +1,134 @@
+.input-box input[type="text"].mail-input:focus
+{
+    border-color: #3D7289;
+}
+.wrapper {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    position:absolute;
+    transform: translate(-50%,-50%);
+    width: 80%;
+    margin: 0 auto;
+    background: rgb(132, 180, 229);
+    border: 3px solid black;
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(164, 240, 255,.8);
+
+}
+
+.wrapper h1 
+{
+    font-size: 36px;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+p.mailtext
+{
+    font-size: 18px;
+    text-align: center;
+}
+
+
+.wrapper .input-box 
+{
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin: 15px 0;
+
+}
+a.kako 
+{
+    text-decoration: none;
+    color: black;
+    transition: color 0.2s ease-in-out;
+    padding-left: 10px;
+    padding-bottom: 10px;
+}
+p.izbor
+{
+    padding-left: 30px;
+}
+a.kako:hover 
+{
+    color: rgb(50,50,50);
+    text-decoration: underline;
+}
+a 
+{
+    display: inline-block;
+}
+
+.input-box 
+{
+    display:flex;
+    justify-content: center;
+}
+.input-box input.mail-input
+{
+    width: 90%;
+    height: 100%;
+    border: 2px solid black;
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    border-radius: 8px;
+    font-size: 18px;
+    padding: 20px 45px 20px 15px;
+
+}
+
+input.inputchk
+{
+    cursor: pointer;
+    margin-right: 8px;
+}
+label.chk
+{
+    cursor: pointer;
+    padding-left: 30px;
+}
+.input-box input.mail-input::placeholder 
+{
+    color: rgba(0,0,0,.45);
+    font-size: 18px;
+}
+
+.input-box .mail-icon 
+{
+    position: absolute;
+    cursor: pointer;
+    right: 20px;
+    top: 50%;
+    transform: translate(-125%,-50%);
+}
+
+
+.button-box
+{
+    display:flex;
+    justify-content: center;
+}
+
+.button-box button 
+{
+    width: 50%;
+    height: 45px;
+    background: white;
+    border: 2px solid black;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    font-size: 16px;
+    font-family: "Merriweather", serif;
+    margin-top: 15px;
+}
+
+.button-box button:hover
+{
+    background-color: rgb(200,200,200);
+}

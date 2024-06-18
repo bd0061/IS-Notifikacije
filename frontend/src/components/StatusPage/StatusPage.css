@@ -1,0 +1,28 @@
+.wrapper {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    position:absolute;
+    transform: translate(-50%,-50%);
+    width: 80%;
+    margin: 0 auto;
+    background: rgb(132, 180, 229);
+    border: 3px solid black;
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(164, 240, 255,.8);
+
+}
+.wrapper h1 
+{
+    font-size: 42px;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.spinner-box 
+{
+    display:flex;
+    justify-content: center;
+}
