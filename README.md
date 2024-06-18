@@ -8,7 +8,8 @@ Aplikacija **Microsoft Teams** postala je standard za komunikaciju između nasta
 **IS Notifikacije** omogućava korisnicima da se prijave za primanje notifikacija za predmete čije se vesti kaće na sajtu Katedre za Informacione Sisteme(*is.fon.bg.ac.rs*).
 
 
-![1718665856957blob](https://github.com/bd0061/IS-Notifikacije/assets/74324902/49f713bf-649b-434c-b69f-0d86561614e7)
+
+![1718665856957blob](https://github.com/bd0061/IS-Notifikacije/assets/74324902/93198faf-fb50-4f92-99f2-bb70fba6a4cb)
 
 
 ## Implementacija
