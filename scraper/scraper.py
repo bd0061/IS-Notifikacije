@@ -145,6 +145,7 @@ def main():
             continue        
         logging.info(f">>>>>>>>>>>>>>>>>>>>>>>NOVI {'ARTIKLI' if len(novi_artikli) > 1 else 'ARTIKAL'} PRONADJEN, KRECEM POKUSAJ SLANJA MEJLA>>>>>>>>>>>>>>>>>>>>>>>")
         for article in novi_artikli:
+            
             svi_linkovi = article.select("a")
             vest_header = svi_linkovi[0]
             
@@ -153,9 +154,11 @@ def main():
             else:
                 vest_naslov = "Nepoznat naziv"
             
+            logging.info(f"OBRADJUJEM ARTIKAL {vest_naslov}")
+            
             kategorije = odredi_kategorije(vest_naslov)
             if not kategorije:
-                logging.error("Artikal ne pripada ni jednoj od poznatih kategorija, ignorisem...")
+                logging.error(f"Artikal {vest_naslov} ne pripada ni jednoj od poznatih kategorija, ignorisem...")
                 continue
             body = article.prettify() + f"<br><p>Kategorije: {kategorije}</p>"
             
