@@ -33,7 +33,6 @@ export default function Uspeh(props)
         {
             setPRight(props.pright);
         }
-        console.log(textal);
     },[props.textal,textal,props.pleft,pleft,props.pright,pright]);
 
     return(

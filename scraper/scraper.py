@@ -158,26 +158,30 @@ def main():
             
             kategorije = odredi_kategorije(vest_naslov)
             if not kategorije:
-                logging.error(f"Artikal {vest_naslov} ne pripada ni jednoj od poznatih kategorija, ignorisem...")
+                logging.error(f"Artikal \"{vest_naslov}\" ne pripada ni jednoj od poznatih kategorija, ignorisem...")
                 continue
             body = article.prettify() + f"<br><p>Kategorije: {kategorije}</p>"
             
             try:
                 studenti_za_slanje = povuci_studente(kategorije)
             except Exception as e:
-                logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE ({e}), preskacem artikal {vest_naslov}")
+                logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE ({e}), preskacem artikal \"{vest_naslov}\"")
                 flag = 1
                 continue
-            logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")      
+            if not studenti_za_slanje:
+                logging.warning(f"Nijedan student u bazi ne prima vesti za {'kategoriju' if len(kategorije) == 1 else 'kategorije'} {kategorije}, preskacem artikal \"{vest_naslov}\"...")
+                continue #tehnicki nepotrebno
+            else:
+                logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")         
             
             for x in studenti_za_slanje['data']:
                 try:
                     unsub_link = f"http://localhost:3000/unsubscribe?token={x['unsubtoken']}"
                     posalji_mejl([x['email']], 'Нова вест - ' + vest_naslov, body + f"<br><i>Ovaj mejl vam je poslat jer se nalazite na mejling listi za notifikacije. Da biste se odjavili kliknite <a href = \"{unsub_link}\">OVDE.</a></i>")
-                    logging.info(f"USPESNO POSLAT MEJL ZA ARTIKAL {vest_naslov} KORISNIKU {x['email']}")
+                    logging.info(f"KORISNIKU {x['email']} USPESNO POSLAT MEJL ZA ARTIKAL: \"{vest_naslov}\"")
                 except Exception as e:
                     flag = 1
-                    logging.critical(f"NEUSPESNO SLANJE MEJLA ZA ARTIKAL {vest_naslov} KORISNIKU {x['email']} ({e}), nastavljam dalje...") 
+                    logging.critical(f"NEUSPESNO SLANJE MEJLA ZA ARTIKAL \"{vest_naslov}\" KORISNIKU {x['email']} ({e}), nastavljam dalje...") 
             
 
         if flag == 0:

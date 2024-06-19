@@ -15,10 +15,25 @@ const formState =
     SUCCESS: 3
 }
 
+function isLocalStorageAvailable() {
+    try {
+        const testKey = 'test';
+        localStorage.setItem(testKey, 'testValue');
+        localStorage.removeItem(testKey);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 
 export default function EmailForm()
 {
-    const [kursevi,setKursevi] = useState([])//dostupne kurseve koje dovlacimo sa servera
+    const [kursevi, setKursevi] = useState(() => {
+
+        const d = isLocalStorageAvailable() ? localStorage.getItem('kursData') : null;
+        return d ? JSON.parse(d) : [];
+      });
     const [email,setEmail] = useState("");
     const [sifre, setSifre] = useState([]);//sifre kurseva koje je korisnik odabrao da prima notifikacije
     const [error,setError] = useState(null);
@@ -43,26 +58,18 @@ export default function EmailForm()
         if(email === "")
         {
             setError("Polje za mejl ne sme biti prazno.");
-            // setSifre([]);
-            // setEmail("");
             return;
         } 
         else if(!regex.test(email) || email.length > 254)
         {
             setError("Unešena adresa nije validna imejl adresa.");
-            // setSifre([]);
-            // setEmail("");
             return;
         }
         else if(sifre.length === 0)
         {
             setError("Morate izabrati barem jedan predmet za primanje notifikacija.");
-            // setSifre([]);
-            // setEmail("");
             return;
         }
-        setSifre([]);
-        setEmail("");
         try 
         {
             setStatus(formState.SENDING);
@@ -120,6 +127,7 @@ export default function EmailForm()
                 setStatus(formState.LOADING);
                 const _kursevi = await getCourses();
                 setKursevi(_kursevi);
+                isLocalStorageAvailable() && localStorage.setItem("kursData",JSON.stringify(_kursevi));
                 setError(null);
                 setStatus(formState.NORMAL);
             }
@@ -129,7 +137,15 @@ export default function EmailForm()
             }
 
         }
-        dovuciKurseve();
+        const d = isLocalStorageAvailable() ? localStorage.getItem("kursData") : null;
+        if(!d)
+        {
+            dovuciKurseve();
+        }
+        else 
+        {
+            setKursevi(JSON.parse(d));
+        }
     },[]);
     if(status === formState.LOADING)
     {
@@ -141,7 +157,7 @@ export default function EmailForm()
             <div className = 'wrapper'>
                 <form onSubmit={onSubmit}>
                     <h1>Prijava</h1>
-                    <p className = "mailtext">Unesite vaš studentski mejl:</p>
+                    <p className = "mailtext">Unesite vaš studentski mejlooo:</p>
                     {error && <p className = "fade-in" style = {{color: "#B63A3A", paddingTop: "10px",textAlign: "center"}}><strong>{error}</strong></p>}
                     <div className="input-box">
                         <input value = {email} className = "mail-input" type="text" placeholder ="ime@imemejla.com" onChange = {e => setEmail(e.target.value)}/>

@@ -73,12 +73,15 @@ namespace MailBackend.Repositories
                 _logger.Log(LogLevel.Error, $"Zahtev odbijen, los mejl(interna sifra: {t})");
                 throw new InvalidMailFormatException("Unešena adresa nije validna imejl adresa.");
             }
-
-            if (!Mejl.EndsWith("@student.fon.bg.ac.rs"))
+            if(Environment.GetEnvironmentVariable("STRICT") == "1")
             {
-                _logger.Log(LogLevel.Error, $"Zahtev odbijen, nije studentski mejl(interna sifra: {t})");
-                throw new NotStudentMailException("Molimo vas unesite Vaš studentski mejl.");
+                if (!Mejl.EndsWith("@student.fon.bg.ac.rs"))
+                {
+                    _logger.Log(LogLevel.Error, $"Zahtev odbijen, nije studentski mejl(interna sifra: {t})");
+                    throw new NotStudentMailException("Molimo vas unesite Vaš studentski mejl.");
+                }
             }
+
             foreach (string sifra in sifre)
             {
                 if (!_context.Kursevi.Select(k => k.Sifra).Contains(sifra))
