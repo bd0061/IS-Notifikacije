@@ -168,7 +168,11 @@ def main():
                 logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE ({e}), preskacem artikal {vest_naslov}")
                 flag = 1
                 continue
-            logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")      
+            if not studenti_za_slanje:
+                logging.warning(f"Nijedan student u bazi ne prima vesti za {'kategoriju' if len(kategorije) == 1 else 'kategorije'} {kategorije}, preskacem artikal {vest_naslov}...")
+                continue #tehnicki nepotrebno
+            else:
+                logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")      
             
             for x in studenti_za_slanje['data']:
                 try:
