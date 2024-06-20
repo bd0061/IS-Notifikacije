@@ -21,9 +21,9 @@ EOF
 cat <<EOF > env/scraper_config.env
 RETRY_INTERVAL=10
 MAX_ATT_COUNT=10
-SLEEP_INTERVAL=0.5
-TESTING=1
-TEST_FILE=tests/articles.html
+SLEEP_INTERVAL=5
+TESTING_IS=1
+TEST_FILE_IS=tests/is/articles.html
 EOF
 
 mkdir -p postgres-data

@@ -9,6 +9,9 @@
 **.sln.docstates
 
 
+**.pyc
+**__pycache__/
+
 # Build results
 MailBackend/[Dd]ebug/
 MailBackend/[Dd]ebugPublic/
