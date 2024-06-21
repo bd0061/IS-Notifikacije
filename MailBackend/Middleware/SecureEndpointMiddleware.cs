@@ -5,11 +5,9 @@ namespace MailBackend.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly string API_KEY_HEADER_NAME = "X-API-KEY";
-        private readonly IConfiguration _configuration;
         public SecureEndpointMiddleware(RequestDelegate next, IConfiguration configuration)
         {
             _next = next;
-            _configuration = configuration;
         }   
 
         public async Task InvokeAsync(HttpContext ctx)

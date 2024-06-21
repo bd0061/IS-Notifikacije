@@ -6,7 +6,7 @@ def povuci_primaoce(url,params):
         'Accept': 'text/plain',
         'X-API-KEY': API_KEY
     }
-    response = requests.get(url, params=params, headers=headers, verify=False)
+    response = requests.get(url, params=params, headers=headers, verify=False) 
     if response.status_code == 200:
         return response.json()
     raise BaseException(f"Los odgovor servera (status : {response.status_code})")

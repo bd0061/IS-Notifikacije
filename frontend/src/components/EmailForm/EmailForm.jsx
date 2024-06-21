@@ -157,7 +157,7 @@ export default function EmailForm()
             <div className = 'wrapper'>
                 <form onSubmit={onSubmit}>
                     <h1>Prijava</h1>
-                    <p className = "mailtext">Unesite vaš studentski mejlooo:</p>
+                    <p className = "mailtext">Unesite vaš studentski mejl:</p>
                     {error && <p className = "fade-in" style = {{color: "#B63A3A", paddingTop: "10px",textAlign: "center"}}><strong>{error}</strong></p>}
                     <div className="input-box">
                         <input value = {email} className = "mail-input" type="text" placeholder ="ime@imemejla.com" onChange = {e => setEmail(e.target.value)}/>

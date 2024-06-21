@@ -236,18 +236,18 @@ namespace MailBackend.Repositories
                 _logger.Log(LogLevel.Error, $"Brisanje odbijeno, neispravan link (unsubtoken: {token})");
                 throw new InvalidTokenException("Ovaj link je nevažeći. Probajte ponovo.");
             }
+            _logger.Log(LogLevel.Information, $"Brisanje uspesno (unsubtoken: {token})");
+            _context.Studenti.Remove(s);
+            await _context.SaveChangesAsync();
+            string text = "<p>Uspešno ste odjavljeni sa liste. Doviđenja!</p>";
             try
             {
-                string text = "<p>Uspešno ste odjavljeni sa liste. Doviđenja!</p>";
                 _emailService.SendEmail(s.Email, "Odjava sa liste za IS Notifikacije", text);
             }
             catch (Exception ex)
             {
                 _logger.Log(LogLevel.Error, $"Neuspelo slanje mejla za unsub. Smtp limit? (unsubtoken = {s.UnsubToken})");
             }
-            _logger.Log(LogLevel.Information, $"Brisanje uspesno (unsubtoken: {token})");
-            _context.Studenti.Remove(s);
-            await _context.SaveChangesAsync();
         }
 
     }
