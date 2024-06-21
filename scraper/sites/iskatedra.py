@@ -109,7 +109,7 @@ def iskatedra_start():
             logging.info(f"Nema novih artikala, cekam {evars.SLEEP_INTERVAL} {'minuta' if str(evars.SLEEP_INTERVAL)[-1] != '1' else 'minut'}, pa poredim ponovo.")
             time.sleep(evars.SLEEP_INTERVAL * 60) 
             continue        
-        logging.info(f">>>>>>>>>>>>>>>>>>>>>>>NOVI {'ARTIKLI' if len(novi_artikli) > 1 else 'ARTIKAL'} PRONADJEN, KRECEM POKUSAJ SLANJA MEJLA>>>>>>>>>>>>>>>>>>>>>>>")
+        logging.info(f">>>>>>>>>>>>>>>>>>>>>>>NOVI {'ARTIKLI PRONADJENI' if len(novi_artikli) > 1 else 'ARTIKAL PRONADJEN'}, KRECEM POKUSAJ SLANJA MEJLA>>>>>>>>>>>>>>>>>>>>>>>")
         for article in novi_artikli:
             
             svi_linkovi = article.select("a")
@@ -120,13 +120,15 @@ def iskatedra_start():
             else:
                 vest_naslov = "Nepoznat naziv"
             
-            logging.info(f"OBRADJUJEM ARTIKAL {vest_naslov}")
-            
+            logging.info(f">>>>>OBRADJUJEM ARTIKAL \"{vest_naslov}\">>>>>")
+            logging.info("Odredjujem kategorije artikla...")
             kategorije = odredi_kategorije(vest_naslov)
             if not kategorije:
                 logging.error(f"Artikal \"{vest_naslov}\" ne pripada ni jednoj od poznatih kategorija, ignorisem...")
                 continue
             body = article.prettify() + f"<br><p>Kategorije: {kategorije}</p>"
+            
+            logging.info(f"Artikal \"{vest_naslov}\" vezan je za sledece kategorije: {kategorije}")
             
             try:
                 studenti_za_slanje = povuci_primaoce('http://mailbackend:5001/api/MejlPoSiframa',{'kursSifre': kategorije})
@@ -134,11 +136,11 @@ def iskatedra_start():
                 logging.critical(f"NEUSPESNO POVLACENJE STUDENATA ZA SLANJE ({e}), preskacem artikal \"{vest_naslov}\"")
                 flag = 1
                 continue
-            if not studenti_za_slanje:
+            if not (tmp:=[x['email'] for x in studenti_za_slanje['data']]):
                 logging.warning(f"Nijedan student u bazi ne prima vesti za {'kategoriju' if len(kategorije) == 1 else 'kategorije'} {kategorije}, preskacem artikal \"{vest_naslov}\"...")
                 continue #tehnicki nepotrebno
             else:
-                logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {[x['email'] for x in studenti_za_slanje['data']]}")         
+                logging.info(f"USPESNO POVUCENI STUDENTI ZA SLANJE ARTIKLA: {vest_naslov}: {tmp}")         
             
             for x in studenti_za_slanje['data']:
                 try:
